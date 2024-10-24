@@ -2,10 +2,18 @@ import customtkinter as ctk
 from tkinter import filedialog, messagebox
 from encryptor import Cryptor
 import os
+from pass_window import PasswordWindow
 
 
 class SecureBox:
-    def __init__(self, win: ctk.CTk) -> None:
+    def __init__(self, win: ctk.CTk, result: bytes) -> None:
+        # remove the fucking error messages after the passwindow is closed and do it at all cost
+        # then commit
+        self.master_key = result
+
+        path = os.path.dirname(os.path.abspath(__file__))
+        self.program_name = self.__class__.__name__
+
         self.encrypt_flag = False
         self.decrypt_flag = False
         self.saved_flag = True
@@ -16,14 +24,14 @@ class SecureBox:
         self.win.geometry("1000x700")
 
         self.path_var = ctk.StringVar()
-        self.saved_var = ctk.StringVar()
+        self.saved_var = ctk.StringVar(value=" ")
 
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
 
         self.win.protocol("WM_DELETE_WINDOW", self.close_program)
 
-        self.cryptor = Cryptor(os.path.dirname(os.path.abspath(__file__)))
+        self.cryptor = Cryptor(path, self.program_name)
         self.create_ui()
 
     def create_ui(self) -> None:
@@ -64,12 +72,13 @@ class SecureBox:
         self.text_field.pack(fill="both", expand=True)
 
         # if the user types something mark it as unsaced changes
-        self.text_field.bind("<Key>", self.text_change)
+        self.text_field.bind("<Key>", lambda event: self.text_change)
+        self.text_field.bind("<Control-s>", self.save_file)
 
         self.win.grid_columnconfigure(1, weight=1)
         self.win.grid_rowconfigure(0, weight=1)
 
-    def text_change(self, event) -> None:
+    def text_change(self) -> None:
         self.saved_flag = False
         self.saved_var.set("There are unsaved changes")
 
@@ -78,6 +87,19 @@ class SecureBox:
             title="Select a text file",
             filetypes=(("Text Files", "*.txt"), ("All Files", "*.*")),
         )
+
+        if not file_path:
+            return
+
+        if not self.saved_flag:
+            if not (
+                messagebox.askyesno(
+                    self.program_name,
+                    "You have unsaved changes, are you sure you want to open a new file?",
+                )
+            ):
+                return
+
         self.path_var.set(file_path)
 
         with open(file_path, "r") as f:
@@ -94,11 +116,12 @@ class SecureBox:
             f.write(self.text_field.get("1.0", "end"))
 
         self.saved_flag = True
-        self.saved_var.set("")
+        self.saved_var.set(" ")
 
+    # encrypt with the new master key
     def encrypt_content(self) -> None:
         if self.encrypt_flag:
-            messagebox.showinfo("SecureBox", "File is already encrypted")
+            messagebox.showinfo(self.program_name, "File is already encrypted")
 
         content = self.cryptor.encrypt_content(
             bytes(self.text_field.get("1.0", "end"), "utf-8"), self.file_name
@@ -115,7 +138,7 @@ class SecureBox:
 
     def decrypt_content(self) -> None:
         if self.decrypt_flag:
-            messagebox.showinfo("SecureBox", "File is already decrypted")
+            messagebox.showinfo(self.program_name, "File is already decrypted")
             return
 
         content = self.cryptor.decrypt_content(
@@ -134,21 +157,32 @@ class SecureBox:
     def close_program(self) -> None:
         if not self.saved_flag:
             answer = messagebox.askyesnocancel(
-                "SecureBox", "Do you want to save before exit?"
+                self.program_name, "Do you want to save before exit?"
             )
 
             if answer:
                 self.encrypt_content()
                 self.save_file()
-                self.win.destroy()
+                exit()
 
             elif not answer:
-                self.win.destroy()
+                exit()
+
+        exit()
 
     def run(self) -> None:
         self.win.mainloop()
 
 
 if __name__ == "__main__":
-    app = SecureBox(ctk.CTk())
-    app.run()
+
+    def check_master_key(result: bytes) -> None:
+        if result:
+            passwin.close()
+            app = SecureBox(ctk.CTk(), result)
+            app.run()
+
+    passwin = PasswordWindow(
+        os.path.dirname(os.path.abspath(__file__)), "SecureBox", check_master_key
+    )
+    passwin.run()
