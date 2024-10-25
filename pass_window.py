@@ -33,7 +33,6 @@ class PasswordWindow:
         if os.path.exists(self.path + r"/password/master_key.txt"):
             self.master_key = self.cryptor.unlock_master_key(self.password_var.get())
             if self.master_key:
-                # self.close()
                 self.callback(self.master_key)
             return
 
@@ -47,7 +46,6 @@ class PasswordWindow:
             self.master_key = self.cryptor.unlock_master_key(self.password_var.get())
             if self.master_key:
                 self.callback(self.master_key)
-                # self.close()
             return
 
     def run(self) -> None:

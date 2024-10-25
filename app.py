@@ -102,7 +102,7 @@ class SecureBox:
 
         self.path_var.set(file_path)
 
-        with open(file_path, "r") as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
             self.text_field.delete("1.0", "end")
             self.text_field.insert("1.0", content)
@@ -112,7 +112,7 @@ class SecureBox:
         self.file_name = os.path.basename(self.path_var.get())
 
     def save_file(self) -> None:
-        with open(self.path_var.get(), "w") as f:
+        with open(self.path_var.get(), "w", encoding="utf-8") as f:
             f.write(self.text_field.get("1.0", "end"))
 
         self.saved_flag = True
@@ -124,7 +124,7 @@ class SecureBox:
             messagebox.showinfo(self.program_name, "File is already encrypted")
 
         content = self.cryptor.encrypt_content(
-            bytes(self.text_field.get("1.0", "end"), "utf-8"), self.file_name
+            bytes(self.text_field.get("1.0", "end"), "utf-8"), self.master_key
         )
 
         self.text_field.delete("1.0", "end")
@@ -142,8 +142,10 @@ class SecureBox:
             return
 
         content = self.cryptor.decrypt_content(
-            bytes(self.text_field.get("1.0", "end"), "utf-8"), self.file_name
+            bytes(self.text_field.get("1.0", "end"), "utf-8"), self.master_key
         )
+        
+        content = content.decode("utf-8")
 
         self.text_field.delete("1.0", "end")
         self.text_field.insert("1.0", content)

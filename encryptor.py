@@ -57,12 +57,12 @@ class Cryptor:
             messagebox.showerror(self.name, "Incorrect password please try again")
             return None
 
-    def encrypt_content(self, content: bytes, file_name: str) -> bytes:
-        cipher_suite = Fernet(self._generate_key(file_name))
+    def encrypt_content(self, content: bytes, master_key: bytes) -> bytes:
+        cipher_suite = Fernet(master_key)
         return cipher_suite.encrypt(content)
 
-    def decrypt_content(self, content: bytes, file_name: str) -> bytes:
-        cipher_suite = Fernet(self._decrypt_key(file_name))
+    def decrypt_content(self, content: bytes, master_key: bytes) -> bytes:
+        cipher_suite = Fernet(master_key)
         return cipher_suite.decrypt(content)
 
 
