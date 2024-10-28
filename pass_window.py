@@ -37,15 +37,17 @@ class PasswordWindow:
             return
 
         else:
-            messagebox.askokcancel(
+            if messagebox.askokcancel(
                 self.name,
                 "WARNING! You haven't set a password. If you continue, a new password will be created.",
-            )
-            self.cryptor.store_password(self.password_var.get())
+            ):
+                self.cryptor.store_password(self.password_var.get())
 
-            self.master_key = self.cryptor.unlock_master_key(self.password_var.get())
-            if self.master_key:
-                self.callback(self.master_key)
+                self.master_key = self.cryptor.unlock_master_key(
+                    self.password_var.get()
+                )
+                if self.master_key:
+                    self.callback(self.master_key)
             return
 
     def run(self) -> None:
@@ -54,7 +56,6 @@ class PasswordWindow:
     def close(self) -> None:
         self.win.quit()
         self.win.destroy()
-
 
 
 if __name__ == "__main__":

@@ -11,7 +11,7 @@ class SecureBox:
         # then commit
         self.master_key = result
 
-        path = os.path.dirname(os.path.abspath(__file__))
+        path = os.getcwd()
         self.program_name = self.__class__.__name__
 
         self.encrypt_flag = False
