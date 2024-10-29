@@ -129,6 +129,7 @@ class SecureBox:
         self.encrypt_flag = False
         self.decrypt_flag = False
 
+
     def save_file(self) -> None:
         if self.file_name.split(".")[1] == "docx":
             content = self.text_field.get("1.0", "end-1c").splitlines()
