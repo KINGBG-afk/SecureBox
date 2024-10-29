@@ -1,7 +1,9 @@
-import customtkinter as ctk
-from tkinter import filedialog, messagebox
-from encryptor import Cryptor
 import os
+from tkinter import filedialog, messagebox
+
+import customtkinter as ctk
+from docx_reader import WrodFileReader
+from encryptor import Cryptor
 from pass_window import PasswordWindow
 
 
@@ -85,7 +87,7 @@ class SecureBox:
     def open_file(self) -> None:
         file_path = filedialog.askopenfilename(
             title="Select a text file",
-            filetypes=(("Text Files", "*.txt"), ("All Files", "*.*")),
+            filetypes=(("All Files", "*.*"),),
         )
 
         if not file_path:
@@ -102,18 +104,31 @@ class SecureBox:
 
         self.path_var.set(file_path)
 
-        with open(file_path, "r", encoding="utf-8") as f:
-            content = f.read()
+        if os.path.splitext(os.path.basename(file_path))[1] == ".docx":
+            content = WrodFileReader.read_file(file_path)
             self.text_field.delete("1.0", "end")
-            self.text_field.insert("1.0", content)
+            self.text_field.insert("1.0", "".join(content))
+
+        else:
+            with open(file_path, "r", encoding="utf-8") as f:
+                content = f.read()
+                self.text_field.delete("1.0", "end")
+                self.text_field.insert("1.0", content)
 
         self.encrypt_flag = False
         self.decrypt_flag = False
-        self.file_name = os.path.basename(self.path_var.get())
+        self.file_name = os.path.basename(file_path)
 
     def save_file(self) -> None:
-        with open(self.path_var.get(), "w", encoding="utf-8") as f:
-            f.write(self.text_field.get("1.0", "end"))
+        
+        if self.file_name.split(".") == ".docx":
+            # i give up.. i leave this to future me im sorry im tired
+            # extract the text from the text_file in a way that you can put it in the WrodFileReader.write_file func
+            pass
+            
+        else:
+            with open(self.path_var.get(), "w", encoding="utf-8") as f:
+                f.write(self.text_field.get("1.0", "end"))
 
         self.saved_flag = True
         self.saved_var.set(" ")
@@ -144,7 +159,7 @@ class SecureBox:
         content = self.cryptor.decrypt_content(
             bytes(self.text_field.get("1.0", "end"), "utf-8"), self.master_key
         )
-        
+
         content = content.decode("utf-8")
 
         self.text_field.delete("1.0", "end")
