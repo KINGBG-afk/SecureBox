@@ -103,9 +103,20 @@ class SecureBox:
                 return
 
         self.path_var.set(file_path)
+        self.file_name = os.path.basename(file_path)
 
-        if os.path.splitext(os.path.basename(file_path))[1] == ".docx":
+        if self.file_name.split(".")[1] == "docx":
             content = WrodFileReader.read_file(file_path)
+            for i in range(len(content)):
+                if i > 0 and content[i - 1] == "\n\n" and content[i] == "":
+                    print("a")
+                    content[i] = "\n"
+                elif i > 0 and content[i - 1] == "\n" and content[i] == "":
+                    content[i] = "\n"
+
+                elif content[i] == "":
+                    content[i] = "\n\n"
+            print(content)
             self.text_field.delete("1.0", "end")
             self.text_field.insert("1.0", "".join(content))
 
@@ -117,15 +128,15 @@ class SecureBox:
 
         self.encrypt_flag = False
         self.decrypt_flag = False
-        self.file_name = os.path.basename(file_path)
 
     def save_file(self) -> None:
-        
-        if self.file_name.split(".") == ".docx":
-            # i give up.. i leave this to future me im sorry im tired
-            # extract the text from the text_file in a way that you can put it in the WrodFileReader.write_file func
-            pass
-            
+        if self.file_name.split(".")[1] == "docx":
+            content = self.text_field.get("1.0", "end-1c").splitlines()
+            # some random stuff are happening here
+            # future me i count on you
+            print(content)
+            WrodFileReader.write_file(self.path_var.get(), content)
+
         else:
             with open(self.path_var.get(), "w", encoding="utf-8") as f:
                 f.write(self.text_field.get("1.0", "end"))
@@ -133,7 +144,6 @@ class SecureBox:
         self.saved_flag = True
         self.saved_var.set(" ")
 
-    # encrypt with the new master key
     def encrypt_content(self) -> None:
         if self.encrypt_flag:
             messagebox.showinfo(self.program_name, "File is already encrypted")
