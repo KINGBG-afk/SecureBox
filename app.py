@@ -107,15 +107,25 @@ class SecureBox:
 
         if self.file_name.split(".")[1] == "docx":
             content = WrodFileReader.read_file(file_path)
+            print(content)
             for i in range(len(content)):
-                if i > 0 and content[i - 1] == "\n\n" and content[i] == "":
-                    print("a")
-                    content[i] = "\n"
-                elif i > 0 and content[i - 1] == "\n" and content[i] == "":
-                    content[i] = "\n"
+                if content[i] == "":
+                    
+                    if i > 0 and content[i - 1] in ["\n\n", "\n"]:
+                        content[i] = "\n"
+                    else:
+                        content[i] = "\n\n"
 
-                elif content[i] == "":
-                    content[i] = "\n\n"
+            for i in range(len(content) - 1):
+                if content[i] not in ["\n\n", "\n", ""] and content[i + 1] not in [
+                    "\n\n",
+                    "\n",
+                    "",
+                ]:
+                    content.insert(i + 1, "\n")
+
+            content = [line.replace("\t", "    ") for line in content]
+
             print(content)
             self.text_field.delete("1.0", "end")
             self.text_field.insert("1.0", "".join(content))
@@ -128,7 +138,6 @@ class SecureBox:
 
         self.encrypt_flag = False
         self.decrypt_flag = False
-
 
     def save_file(self) -> None:
         if self.file_name.split(".")[1] == "docx":

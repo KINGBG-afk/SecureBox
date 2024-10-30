@@ -3,7 +3,7 @@ from docx import Document
 
 class WrodFileReader:
     @staticmethod
-    def read_file(file_path: str) -> str:
+    def read_file(file_path: str) -> list[str]:
         doc = Document(file_path)
 
         content = []
