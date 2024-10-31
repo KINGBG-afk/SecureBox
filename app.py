@@ -20,6 +20,7 @@ class SecureBox:
         self.decrypt_flag = False
         self.saved_flag = True
         self.file_name = None
+        self.file_path = None
 
         self.win = win
         self.win.minsize(400, 300)
@@ -103,14 +104,13 @@ class SecureBox:
                 return
 
         self.path_var.set(file_path)
+        self.file_path = self.path_var.get()
         self.file_name = os.path.basename(file_path)
 
         if self.file_name.split(".")[1] == "docx":
             content = WrodFileReader.read_file(file_path)
-            print(content)
             for i in range(len(content)):
                 if content[i] == "":
-                    
                     if i > 0 and content[i - 1] in ["\n\n", "\n"]:
                         content[i] = "\n"
                     else:
@@ -140,15 +140,29 @@ class SecureBox:
         self.decrypt_flag = False
 
     def save_file(self) -> None:
+        if self.file_path is None or not os.path.exists(self.file_path):
+            _file = filedialog.asksaveasfile(
+                defaultextension=".txt",
+                filetypes=(("All Files", ".*"),),
+            )
+
+            if _file:
+                text = self.text_field.get("1.0", "end")
+                _file.write(text)
+                _file.close()
+
+            return
+
         if self.file_name.split(".")[1] == "docx":
             content = self.text_field.get("1.0", "end-1c").splitlines()
-            # some random stuff are happening here
-            # future me i count on you
-            print(content)
-            WrodFileReader.write_file(self.path_var.get(), content)
+            # saving a docx file still doesnt work as expected 😞
+            if self.encrypt_flag:
+                WrodFileReader.write_file(self.file_path, content, True)
+            else:
+                WrodFileReader.write_file(self.file_path, content, False)
 
         else:
-            with open(self.path_var.get(), "w", encoding="utf-8") as f:
+            with open(self.file_path, "w", encoding="utf-8") as f:
                 f.write(self.text_field.get("1.0", "end"))
 
         self.saved_flag = True
