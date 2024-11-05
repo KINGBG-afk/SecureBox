@@ -59,6 +59,7 @@ class PasswordWindow:
 
 
 if __name__ == "__main__":
-    path = os.path.dirname(os.path.abspath(__file__))
+    path = os.getcwd()
+    print(path)
     a = PasswordWindow(path, "SecureBox", lambda x: print(f"Done {x}"))
     a.run()

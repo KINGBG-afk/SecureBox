@@ -109,6 +109,9 @@ class SecureBox:
 
         if self.file_name.split(".")[1] == "docx":
             content = WrodFileReader.read_file(file_path)
+            print(f"original: {content}")
+
+            # add \n or \n\n to the right places
             for i in range(len(content)):
                 if content[i] == "":
                     if i > 0 and content[i - 1] in ["\n\n", "\n"]:
@@ -116,17 +119,21 @@ class SecureBox:
                     else:
                         content[i] = "\n\n"
 
-            for i in range(len(content) - 1):
+            # add \n between strings
+            i = 0
+            while i < len(content) - 1:
                 if content[i] not in ["\n\n", "\n", ""] and content[i + 1] not in [
                     "\n\n",
                     "\n",
                     "",
                 ]:
                     content.insert(i + 1, "\n")
+                    i += 1
+                i += 1
 
             content = [line.replace("\t", "    ") for line in content]
 
-            print(content)
+            print(f" eidted content: {content}")
             self.text_field.delete("1.0", "end")
             self.text_field.insert("1.0", "".join(content))
 

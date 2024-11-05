@@ -15,36 +15,12 @@ class WrodFileReader:
     def write_file(file_path: str, new_text: list[str], crypt_flag: bool) -> None:
         doc = Document(file_path)
 
-        if crypt_flag:
-            for paragraph in doc.paragraphs:
-                p = paragraph._element
-                p.getparent().remove(p)
-                p._p = p._element = None
+        for paragraph in doc.paragraphs:
+            p = paragraph._element
+            p.getparent().remove(p)
+            p._p = p._element = None
 
-            doc.add_paragraph("".join(new_text))
-
-        else:
-            text_i = 0
-
-            for paragraph in doc.paragraphs:
-                for run in paragraph.runs:
-                    if text_i < len(new_text):
-                        is_bold = run.bold
-                        is_italic = run.italic
-                        font_size = run.font.size
-                        aligment = paragraph.alignment
-
-                        run.clear()
-                        run.text = new_text[text_i]
-
-                        run.bold = is_bold
-                        run.italic = is_italic
-                        run.font.size = font_size
-                        paragraph.alignment = aligment
-
-                        text_i += 1
-
-                    else:
-                        break
+        for line in new_text:
+            doc.add_paragraph(line)
 
         doc.save(file_path)
