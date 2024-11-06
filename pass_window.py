@@ -61,10 +61,3 @@ class PasswordWindow:
         self.win.withdraw()
         # i acknoladge my mistakes with respect
         # my may actions be forgiven from those reading this masterpiece of my mistakes
-
-
-if __name__ == "__main__":
-    path = os.path.dirname(os.path.abspath(__file__))
-    print(path)
-    a = PasswordWindow(path, "SecureBox", lambda x: print(f"Done {x}"))
-    a.run()

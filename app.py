@@ -4,13 +4,10 @@ from tkinter import filedialog, messagebox
 import customtkinter as ctk
 from docx_reader import WordFileReader
 from encryptor import Cryptor
-from pass_window import PasswordWindow
 
 
 class SecureBox:
     def __init__(self, win: ctk.CTk, result: bytes) -> None:
-        # remove the fucking error messages after the passwindow is closed and do it at all cost
-        # then commit
         self.master_key = result
 
         path = os.path.dirname(os.path.abspath(__file__))
@@ -109,7 +106,6 @@ class SecureBox:
 
         if self.file_name.split(".")[1] == "docx":
             content = WordFileReader.read_file(file_path)
-            print(f"original: {content}")
 
             # add \n or \n\n to the right places
             for i in range(len(content)):
@@ -133,7 +129,6 @@ class SecureBox:
 
             content = [line.replace("\t", "    ") for line in content]
 
-            print(f" eidted content: {content}")
             self.text_field.delete("1.0", "end")
             self.text_field.insert("1.0", "".join(content))
 
@@ -225,17 +220,3 @@ class SecureBox:
 
     def run(self) -> None:
         self.win.mainloop()
-
-
-if __name__ == "__main__":
-
-    def check_master_key(result: bytes) -> None:
-        if result:
-           #  passwin.close()
-            app = SecureBox(ctk.CTk(), result)
-            app.run()
-
-    passwin = PasswordWindow(
-        os.path.dirname(os.path.abspath(__file__)), "SecureBox", check_master_key
-    )
-    passwin.run()
