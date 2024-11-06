@@ -1,3 +1,4 @@
+import os
 from base64 import urlsafe_b64encode
 from os import urandom
 from tkinter import messagebox
@@ -34,11 +35,14 @@ class Cryptor:
         salt = urandom(16)
         password_hash = self._generate_master_key(password, salt)
 
-        with open(self.path + r"\password\master_key.txt", "wb") as f:
+        if not os.path.exists(os.path.join(self.path, "password")):
+            os.makedirs(os.path.join(self.path, "password"), exist_ok=True)
+
+        with open(os.path.join(self.path, "password", "master_key.txt"), "wb") as f:
             f.write(salt + password_hash)
 
     def _verify_password(self, password: str) -> bool:
-        with open(self.path + r"\password\master_key.txt", "rb") as f:
+        with open(os.path.join(self.path, "password", "master_key.txt"), "rb") as f:
             data = f.read()
             salt = data[:16]
             stored_pass_hash = data[16:]
@@ -48,7 +52,7 @@ class Cryptor:
 
     def unlock_master_key(self, password: str) -> bytes | None:
         if self._verify_password(password):
-            with open(self.path + r"\password\master_key.txt", "rb") as f:
+            with open(os.path.join(self.path, "password", "master_key.txt"), "rb") as f:
                 data = f.read()
                 salt = data[:16]
 
@@ -64,24 +68,3 @@ class Cryptor:
     def decrypt_content(self, content: bytes, master_key: bytes) -> bytes:
         cipher_suite = Fernet(master_key)
         return cipher_suite.decrypt(content)
-
-
-if __name__ == "__main__":
-    # cypting and decrypting wroks
-    path = r"D:\programming\Python\GUI\SecureBox"
-    c = Cryptor(path)
-    with open(path + r"\test\test.txt", "rb") as f:
-        content = f.read()
-
-    data = c.encrypt_content(content, "test")
-
-    with open(path + r"\test\test.txt", "wb") as f:
-        f.write(data)
-
-    # decrypt file
-    with open(path + r"\test\test.txt", "rb") as f:
-        content = f.read()
-
-    ddata = c.decrypt_content(content, "test")
-    with open(path + r"\test\test.txt", "wb") as f:
-        f.write(ddata)
