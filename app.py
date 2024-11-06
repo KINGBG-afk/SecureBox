@@ -2,7 +2,7 @@ import os
 from tkinter import filedialog, messagebox
 
 import customtkinter as ctk
-from docx_reader import WrodFileReader
+from docx_reader import WordFileReader
 from encryptor import Cryptor
 from pass_window import PasswordWindow
 
@@ -13,7 +13,7 @@ class SecureBox:
         # then commit
         self.master_key = result
 
-        path = os.getcwd()
+        path = os.path.dirname(os.path.abspath(__file__))
         self.program_name = self.__class__.__name__
 
         self.encrypt_flag = False
@@ -75,7 +75,7 @@ class SecureBox:
         self.text_field.pack(fill="both", expand=True)
 
         # if the user types something mark it as unsaced changes
-        self.text_field.bind("<Key>", lambda event: self.text_change)
+        self.text_field.bind("<Key>", self.text_change)
         self.text_field.bind("<Control-s>", self.save_file)
 
         self.win.grid_columnconfigure(1, weight=1)
@@ -108,7 +108,7 @@ class SecureBox:
         self.file_name = os.path.basename(file_path)
 
         if self.file_name.split(".")[1] == "docx":
-            content = WrodFileReader.read_file(file_path)
+            content = WordFileReader.read_file(file_path)
             print(f"original: {content}")
 
             # add \n or \n\n to the right places
@@ -162,11 +162,7 @@ class SecureBox:
 
         if self.file_name.split(".")[1] == "docx":
             content = self.text_field.get("1.0", "end-1c").splitlines()
-            # saving a docx file still doesnt work as expected 😞
-            if self.encrypt_flag:
-                WrodFileReader.write_file(self.file_path, content, True)
-            else:
-                WrodFileReader.write_file(self.file_path, content, False)
+            WordFileReader.write_file(self.file_path, content)
 
         else:
             with open(self.file_path, "w", encoding="utf-8") as f:
@@ -219,7 +215,6 @@ class SecureBox:
             )
 
             if answer:
-                self.encrypt_content()
                 self.save_file()
                 exit()
 
@@ -236,7 +231,7 @@ if __name__ == "__main__":
 
     def check_master_key(result: bytes) -> None:
         if result:
-            passwin.close()
+           #  passwin.close()
             app = SecureBox(ctk.CTk(), result)
             app.run()
 

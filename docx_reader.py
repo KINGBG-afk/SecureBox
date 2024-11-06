@@ -1,7 +1,7 @@
 from docx import Document
 
 
-class WrodFileReader:
+class WordFileReader:
     @staticmethod
     def read_file(file_path: str) -> list[str]:
         doc = Document(file_path)
@@ -12,7 +12,7 @@ class WrodFileReader:
         return content
 
     @staticmethod
-    def write_file(file_path: str, new_text: list[str], crypt_flag: bool) -> None:
+    def write_file(file_path: str, new_text: list[str]) -> None:
         doc = Document(file_path)
 
         for paragraph in doc.paragraphs:

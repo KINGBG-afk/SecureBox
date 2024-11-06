@@ -24,10 +24,14 @@ class PasswordWindow:
             self.win,
             width=190,
             textvariable=self.password_var,
-        ).pack(pady=15)
+        )
 
-        ctk.CTkButton(self.win, text="Continiue", command=self.confirm_pass).pack()
+        button = ctk.CTkButton(self.win, text="Continiue", command=self.confirm_pass)
+
         self.win.bind("<Return>", lambda event: self.confirm_pass())
+
+        self.entry.pack(pady=15)
+        button.pack()
 
     def confirm_pass(self) -> bytes | None:
         if os.path.exists(self.path + r"/password/master_key.txt"):
@@ -54,12 +58,13 @@ class PasswordWindow:
         self.win.mainloop()
 
     def close(self) -> None:
-        self.win.quit()
-        self.win.destroy()
+        self.win.withdraw()
+        # i acknoladge my mistakes with respect
+        # my may actions be forgiven from those reading this masterpiece of my mistakes
 
 
 if __name__ == "__main__":
-    path = os.getcwd()
+    path = os.path.dirname(os.path.abspath(__file__))
     print(path)
     a = PasswordWindow(path, "SecureBox", lambda x: print(f"Done {x}"))
     a.run()
