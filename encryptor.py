@@ -3,7 +3,7 @@ from base64 import urlsafe_b64encode
 from os import urandom
 from tkinter import messagebox
 
-from cryptography.fernet import Fernet
+from cryptography.fernet import Fernet, InvalidToken
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -67,4 +67,7 @@ class Cryptor:
 
     def decrypt_content(self, content: bytes, master_key: bytes) -> bytes:
         cipher_suite = Fernet(master_key)
-        return cipher_suite.decrypt(content)
+        try:
+            return cipher_suite.decrypt(content)
+        except InvalidToken:
+            messagebox.showinfo(self.name, "File is already decrypted")

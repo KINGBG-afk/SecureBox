@@ -23,8 +23,8 @@ class SecureBox:
         self.win.minsize(400, 300)
         self.win.geometry("1000x700")
 
-        self.path_var = ctk.StringVar()
-        self.saved_var = ctk.StringVar(value=" ")
+        self.path_var = ctk.StringVar(self.win)
+        self.saved_var = ctk.StringVar(self.win, "")
 
         ctk.set_appearance_mode("dark")
         ctk.set_default_color_theme("blue")
@@ -62,7 +62,8 @@ class SecureBox:
 
         ctk.CTkButton(left_frame, text="Save", command=self.save_file).pack(fill="x")
 
-        ctk.CTkLabel(left_frame, textvariable=self.saved_var).pack()
+        self.saved_label = ctk.CTkLabel(left_frame, textvariable=self.saved_var)
+        self.saved_label.pack()
 
         # right frame
         right_frame = ctk.CTkFrame(self.win, width=400, height=400)
@@ -73,18 +74,18 @@ class SecureBox:
 
         # if the user types something mark it as unsaced changes
         self.text_field.bind("<Key>", self.text_change)
-        self.text_field.bind("<Control-s>", self.save_file)
+        self.text_field.bind("<Control-s>", self.save_file, add=True)
 
         self.win.grid_columnconfigure(1, weight=1)
         self.win.grid_rowconfigure(0, weight=1)
 
-    def text_change(self) -> None:
+    def text_change(self, *_) -> None:
         self.saved_flag = False
         self.saved_var.set("There are unsaved changes")
 
     def open_file(self) -> None:
         file_path = filedialog.askopenfilename(
-            title="Select a text file",
+            title="Select a file",
             filetypes=(("All Files", "*.*"),),
         )
 
@@ -141,7 +142,7 @@ class SecureBox:
         self.encrypt_flag = False
         self.decrypt_flag = False
 
-    def save_file(self) -> None:
+    def save_file(self, *_) -> None:
         if self.file_path is None or not os.path.exists(self.file_path):
             _file = filedialog.asksaveasfile(
                 defaultextension=".txt",
@@ -164,11 +165,12 @@ class SecureBox:
                 f.write(self.text_field.get("1.0", "end"))
 
         self.saved_flag = True
-        self.saved_var.set(" ")
+        self.saved_var.set("")
 
     def encrypt_content(self) -> None:
         if self.encrypt_flag:
             messagebox.showinfo(self.program_name, "File is already encrypted")
+            return
 
         content = self.cryptor.encrypt_content(
             bytes(self.text_field.get("1.0", "end"), "utf-8"), self.master_key
