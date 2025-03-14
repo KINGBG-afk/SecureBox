@@ -1,4 +1,5 @@
 import os
+from PIL import Image
 from tkinter import filedialog, messagebox
 
 import customtkinter as ctk
@@ -6,7 +7,10 @@ from docx_reader import WordFileReader
 from encryptor import Cryptor
 
 
+# no way to restore password as of now
+# make image encryption
 class SecureBox:
+    # NOTE pls for your own sake and sanity dont make ctk.CTk the parent class
     def __init__(self, win: ctk.CTk, result: bytes) -> None:
         self.master_key = result
 
@@ -18,6 +22,15 @@ class SecureBox:
         self.saved_flag = True
         self.file_name = None
         self.file_path = None
+
+        self.text_widget_flag = True
+        self.image_widget_flag = False
+
+        self.text_field = None
+        self.image_field = None
+
+        self.image = None  # damn you garbage collector
+        self.pil_image = None  # damn you garbage collector
 
         self.win = win
         self.win.minsize(400, 300)
@@ -66,10 +79,10 @@ class SecureBox:
         self.saved_label.pack()
 
         # right frame
-        right_frame = ctk.CTkFrame(self.win, width=400, height=400)
-        right_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
+        self.right_frame = ctk.CTkFrame(self.win, width=400, height=400)
+        self.right_frame.grid(row=0, column=1, padx=10, pady=10, sticky="nsew")
 
-        self.text_field = ctk.CTkTextbox(right_frame)
+        self.text_field = ctk.CTkTextbox(self.right_frame)
         self.text_field.pack(fill="both", expand=True)
 
         # if the user types something mark it as unsaced changes
@@ -83,10 +96,67 @@ class SecureBox:
         self.saved_flag = False
         self.saved_var.set("There are unsaved changes")
 
+    def change_widget(self) -> None:
+        if self.text_widget_flag:
+            pil_image = Image.open(self.file_path)
+
+            self.image = ctk.CTkImage(
+                light_image=pil_image,
+                dark_image=pil_image,
+                size=(min(pil_image.width, 300), min(pil_image.height, 300)),
+            )
+
+            self.text_field.destroy()
+
+            self.image_field = ctk.CTkLabel(self.right_frame, text="", image=self.image)
+
+            # we probably dont need this code but just for saftey to not lose referance to the image
+            self.image_field.image = self.image
+
+            self.image_field.pack(expand=True, fill="both")
+
+            self.text_widget_flag = False
+            self.image_widget_flag = True
+
+        else:
+            self.text_widget_flag = True
+            self.image_widget_flag = False
+            self.image = None
+            self.pil_image = None
+            self.image_field.destroy()
+
+            self.text_field = ctk.CTkTextbox(self.right_frame)
+            self.text_field.pack(fill="both", expand=True)
+
+    def check_file_type(self, file_path: str) -> str:
+        """Checks for all file types
+
+        Args:
+            file_path (str): Path to the file
+
+        Returns:
+            str:
+                "img" -> the file is an image \n
+                "text" -> the file can be opened as simple text
+        """
+        try:
+            with Image.open(file_path) as img:
+                img.verify()
+            return "img"
+        except Exception:
+            pass
+
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                f.read(1024)
+            return "text"
+        except Exception:
+            return "binary"
+
     def open_file(self) -> None:
         file_path = filedialog.askopenfilename(
             title="Select a file",
-            filetypes=(("All Files", "*.*"),),
+            filetypes=(("All Files", "*.*"), ("Image files", "*.png *.jpg")),
         )
 
         if not file_path:
@@ -96,7 +166,7 @@ class SecureBox:
             if not (
                 messagebox.askyesno(
                     self.program_name,
-                    "You have unsaved changes, are you sure you want to open a new file?",
+                    "You have unsaved changes, are you sure you want to open a new file without saving the last one?",
                 )
             ):
                 return
@@ -133,11 +203,24 @@ class SecureBox:
             self.text_field.delete("1.0", "end")
             self.text_field.insert("1.0", "".join(content))
 
-        else:
+        file_type = self.check_file_type(self.file_path)
+        if file_type == "text":
+            if self.image_widget_flag:
+                self.change_widget()
+
             with open(file_path, "r", encoding="utf-8") as f:
                 content = f.read()
                 self.text_field.delete("1.0", "end")
                 self.text_field.insert("1.0", content)
+
+        elif file_type == "img":
+            if self.text_widget_flag:
+                self.change_widget()
+        else:
+            messagebox.showerror(
+                self.program_name,
+                "This file cannot be opened as text/image file",
+            )
 
         self.encrypt_flag = False
         self.decrypt_flag = False
@@ -222,3 +305,9 @@ class SecureBox:
 
     def run(self) -> None:
         self.win.mainloop()
+
+
+if __name__ == "__main__":
+    c = Cryptor(os.path.dirname(os.path.abspath(__file__)), "SecureBox")
+    s = SecureBox(ctk.CTk(), c.unlock_master_key("123"))
+    s.run()
